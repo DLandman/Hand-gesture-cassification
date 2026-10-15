@@ -32,6 +32,12 @@ N_SPLITS = 5
 FEATURES = ["mav", "rms", "wl", "zc", "ssc", "mnf", "mdf"]
 ZC_THRESHOLD = 0.1
 
+# number of trials for hyperparameter tuning
+N_TRIALS = 10
+
+# toggle custom names for pipeline steps
+CUSTOM_NAMES = False
+
 # Choices to sweep later with the real models. The constants above are the defaults.
 # Not options (fixed rules): split by subject, fit scalers/selectors on training subjects
 # only, windows never mix classes, merge repeated rows, drop windows over a recording gap.
@@ -45,4 +51,13 @@ OPTIONS = {
     "zc_threshold": [0.05, 0.1, 0.2],
     "drop_clipped": [False, True],
     "classes": [[1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6]],
+    'pca': {
+        'n_components': [2, 5, 10, None]
+    },
+    'selectkbest': {
+        'k': [2, 5, 10, "all"]
+    },
+    'svc': {
+        'C': [0.1, 1, 10]
+    }
 }
