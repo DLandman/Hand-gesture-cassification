@@ -163,7 +163,7 @@ def build_features(raw, names=None, zc_threshold=None):
     # raw: (n_windows, n_samples, 8) -> X (n_windows, 8 * len(names)) and column names
     names = names or config.FEATURES
     threshold = config.ZC_THRESHOLD if zc_threshold is None else zc_threshold
-    x = raw - raw.mean(axis=1, keepdims=True)     # remove the mean of each window
+    x = raw # - raw.mean(axis=1, keepdims=True)     # remove the mean of each window
     parts = [FEATURE_FUNCTIONS[n](x, threshold) if n in ("zc", "ssc") else FEATURE_FUNCTIONS[n](x)
              for n in names]
     return np.hstack(parts), [f"{n}_{ch}" for n in names for ch in CH]
@@ -179,7 +179,7 @@ def make_features(raw, groups, normalization=None, names=None, zc_threshold=None
 
 
 def get_data(window_samples=None, overlap=None, classes=None, normalization=None, names=None,
-             zc_threshold=None, drop_clipped=False):
+             zc_threshold=None, drop_clipped=False, fit_idx=None):
     # X (n, 8 * n_features), y (class), groups (subject id), scaled raw windows (n, window, 8), feature names
     # every argument defaults to the value in config.py; see OPTIONS there for the values to try
     raw, y, groups, _ = get_windows(window_samples, overlap, classes)
@@ -187,7 +187,7 @@ def get_data(window_samples=None, overlap=None, classes=None, normalization=None
         lo, hi = config.CLIP_COUNTS
         keep = ~((raw <= lo) | (raw >= hi)).any(axis=(1, 2))
         raw, y, groups = raw[keep], y[keep], groups[keep]
-    X, x, cols = make_features(raw, groups, normalization, names, zc_threshold)
+    X, x, cols = make_features(raw, groups, normalization, names, zc_threshold, fit_idx)
     return X, y, groups, x, cols
 
 

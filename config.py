@@ -20,8 +20,8 @@ COLLAPSE_REPEATS = True
 MAX_GAP_MS = 100             # windows with a longer gap between samples are dropped
 
 # windows, in samples
-WINDOW_SAMPLES = 20
-OVERLAP = 0.5
+WINDOW_SAMPLES = 40
+OVERLAP = 0.75
 
 # normalization: "global" or "per_subject"
 NORMALIZATION = "per_subject"
@@ -62,13 +62,15 @@ CCP_ALPHA_OPTS = [0.0, 0.01, 0.05, 0.1]
 # Also left to the classifier pipeline: feature reduction (none, top k, PCA) and the
 # neural network input (raw windows or features).
 OPTIONS = {
-    "window_samples": [10, 20, 30, 40],
-    "overlap": [0, 0.5, 0.75],
-    "normalization": ["none", "global", "per_subject"],
-    "names": [["rms"], ["mav", "rms", "wl"], ["mav", "rms", "wl", "zc", "ssc"], FEATURES],
-    "zc_threshold": [0.05, 0.1, 0.2],
-    "drop_clipped": [False, True],
-    "classes": [[1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6]],
+    'preprocessing': {
+        "window_samples": [10, 20, 30, 40],
+        "overlap": [0, 0.25, 0.5, 0.75],
+        "normalization": ["none", "global", "per_subject"],
+        "names": [FEATURES[1], FEATURES[:3], FEATURES[:5], FEATURES],
+        "zc_threshold": [0.05, 0.1, 0.2],
+        "drop_clipped": [False, True],
+        "classes": [[1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6]],
+    },
     'pca': {
         'n_components': [2, 5, 10, None],
     },
