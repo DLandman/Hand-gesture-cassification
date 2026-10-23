@@ -1,5 +1,5 @@
-# Task 1 pipeline: raw csv -> windows -> per-subject normalization -> features.
-# Run `python preprocess.py` to write work/task1_output.npz, or use get_data() from Task 2.
+# Pre-processing: raw csv -> windows -> normalization -> features.
+# Run `python preprocess.py` to write work/task1_output.npz, or call get_data() from another script.
 import numpy as np
 import pandas as pd
 
@@ -7,8 +7,6 @@ import config
 
 CH = config.CHANNELS
 
-
-# ---------- load and clean ----------
 
 def read_raw():
     df = pd.read_csv(config.RAW_CSV, dtype={"class": "int8", "label": "int16"})
@@ -55,8 +53,6 @@ def label_segments(df):
     return df.assign(segment=new_segment.cumsum(), gap_ms=gap)
 
 
-# ---------- windows ----------
-
 def cut_windows(df, window_samples=None, overlap=None):
     # windows are cut inside one segment, so they never mix classes
     n = window_samples or config.WINDOW_SAMPLES
@@ -87,8 +83,6 @@ def get_windows(window_samples=None, overlap=None, classes=None):
     return raw, meta["class"].to_numpy(), meta["subject"].to_numpy(), meta
 
 
-# ---------- normalization ----------
-
 def stats(x):
     flat = x.reshape(-1, x.shape[-1])
     return flat.mean(axis=0), flat.std(axis=0)
@@ -110,8 +104,6 @@ def scale_windows(raw, groups, mode, fit_idx=None):
         out[mine] = (raw[mine] - mu) / sd
     return out
 
-
-# ---------- features ----------
 
 def mav(x):
     return np.abs(x).mean(axis=1)
@@ -163,13 +155,11 @@ def build_features(raw, names=None, zc_threshold=None):
     # raw: (n_windows, n_samples, 8) -> X (n_windows, 8 * len(names)) and column names
     names = names or config.FEATURES
     threshold = config.ZC_THRESHOLD if zc_threshold is None else zc_threshold
-    x = raw # - raw.mean(axis=1, keepdims=True)     # remove the mean of each window
+    x = raw
     parts = [FEATURE_FUNCTIONS[n](x, threshold) if n in ("zc", "ssc") else FEATURE_FUNCTIONS[n](x)
              for n in names]
     return np.hstack(parts), [f"{n}_{ch}" for n in names for ch in CH]
 
-
-# ---------- output ----------
 
 def make_features(raw, groups, normalization=None, names=None, zc_threshold=None, fit_idx=None):
     # scaled windows and features. "global" needs fit_idx (training windows), so call it inside each fold
@@ -181,7 +171,7 @@ def make_features(raw, groups, normalization=None, names=None, zc_threshold=None
 def get_data(window_samples=None, overlap=None, classes=None, normalization=None, names=None,
              zc_threshold=None, drop_clipped=False, fit_idx=None):
     # X (n, 8 * n_features), y (class), groups (subject id), scaled raw windows (n, window, 8), feature names
-    # every argument defaults to the value in config.py; see OPTIONS there for the values to try
+    # every argument defaults to the value in config.py
     raw, y, groups, _ = get_windows(window_samples, overlap, classes)
     if drop_clipped:
         lo, hi = config.CLIP_COUNTS
